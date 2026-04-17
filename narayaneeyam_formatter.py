@@ -215,6 +215,16 @@ def response_to_text(response: Any) -> str:
     return joined
 
 
+def is_insufficient_quota_error(exc: Exception) -> bool:
+    """Return True if exception indicates OpenAI insufficient quota."""
+    code = str(getattr(exc, "code", "") or "").strip().lower()
+    if code == "insufficient_quota":
+        return True
+
+    message = str(exc).lower()
+    return "insufficient_quota" in message or "exceeded your current quota" in message
+
+
 def convert_sloka_with_model(client: Any, model: str, sloka: str, title: str | None) -> SlokaResult:
     """Convert one sloka through the Responses API."""
     prompt = build_user_prompt(sloka, title)
@@ -293,6 +303,11 @@ def process(
             try:
                 results.append(convert_sloka_with_model(client, model, sloka, title))
             except Exception as exc:
+                if is_insufficient_quota_error(exc):
+                    raise RuntimeError(
+                        "OpenAI API quota exceeded (insufficient_quota). "
+                        "Please enable billing or top up credits, then rerun."
+                    ) from exc
                 LOGGER.error("Failed to process one sloka block: %s", exc)
                 results.append(
                     SlokaResult(

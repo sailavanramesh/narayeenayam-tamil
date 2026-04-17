@@ -36,6 +36,31 @@ pip install -r requirements.txt
 export OPENAI_API_KEY="your_api_key_here"
 ```
 
+
+## Quick start (macOS zsh)
+
+If your prompt looks like `base) ...$`, you are in the **shell** (good).
+If your prompt looks like `>>>`, you are inside **Python REPL** (wrong place for shell commands).
+
+Use these exact commands in terminal:
+
+```bash
+cd /path/to/narayeenayam-tamil
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+export OPENAI_API_KEY="your_api_key_here"
+python narayaneeyam_formatter.py --input sample_narayaneeyam_d1_input.txt --output out.txt
+```
+
+If you accidentally entered Python (`>>>`), exit first:
+
+```python
+exit()
+```
+
+Then run shell commands again at `$` prompt.
+
 ## Usage
 
 ### 1) Text input only
@@ -79,5 +104,20 @@ python narayaneeyam_formatter.py \
 ## Notes
 
 - JSON parsing is intentionally defensive (direct JSON, fenced JSON, object slice fallback).
-- If one sloka fails conversion, the script inserts Tamil error placeholders and continues.
+- If one sloka fails conversion (non-quota errors), the script inserts Tamil error placeholders and continues.
+- If the API returns `insufficient_quota`, the script now stops immediately with a clear error and does **not** write a placeholder-only output file.
 - PDF parsing quality depends on source PDF text layer quality; OCR PDFs may need pre-cleaning.
+
+## Quota error (`429 insufficient_quota`) quick fix
+
+If you see:
+
+- `Error code: 429`
+- `insufficient_quota`
+
+then your API project currently has no usable credits/quota.
+
+1. Open: https://platform.openai.com/settings/organization/billing/overview
+2. Ensure billing is active and a payment method is set.
+3. If needed, add credits / raise hard limit.
+4. Re-run the same command.
