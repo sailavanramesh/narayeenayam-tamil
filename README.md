@@ -1,13 +1,6 @@
 # narayaneeyam-formatter
 
-Python project to convert Sanskrit **Narayaneeyam** slokas from UTF-8 `.txt` input into Tamil study text layout using the **OpenAI Python SDK** and **Responses API**.
-
-## Features
-
-- Python 3.10+
-- Reads one or more input files
-- Treats each slokam block as text separated by a blank line
-- Produces plain `.txt` output in the exact Tamil study layout:
+Convert Sanskrit **Narayaneeyam** slokas into Tamil study text with this exact layout:
 
 ```text
 🔹 ஸ்லோகம் X
@@ -24,35 +17,28 @@ Python project to convert Sanskrit **Narayaneeyam** slokas from UTF-8 `.txt` inp
 <simple Tamil meaning>
 ```
 
-- Modular and commented code
-- CLI options for `--input`, `--output`, `--title`, `--model`, `--chunk-size`
-- Robust JSON parsing with fallback handling for model output quirks
-- Starts with Dasakam 1 sample input support
+The project uses the **OpenAI Python SDK** + **Responses API** and supports input from:
+
+- UTF-8 `.txt` files (sloka blocks separated by blank lines)
+- PDF files (heuristic text extraction)
+
+## Requirements
+
+- Python 3.10+
+- `OPENAI_API_KEY` environment variable
 
 ## Setup
-
-1. Create and activate a virtual environment:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-```
-
-2. Install dependencies:
-
-```bash
 pip install -r requirements.txt
-```
-
-3. Set your OpenAI API key:
-
-```bash
 export OPENAI_API_KEY="your_api_key_here"
 ```
 
 ## Usage
 
-### Basic
+### 1) Text input only
 
 ```bash
 python narayaneeyam_formatter.py \
@@ -60,33 +46,38 @@ python narayaneeyam_formatter.py \
   --output dasakam1_tamil_output.txt
 ```
 
-### With custom title/model/chunk-size
+### 2) PDF input only
+
+```bash
+python narayaneeyam_formatter.py \
+  --input-pdf narayaneeyamAllDashakas.pdf \
+  --output all_dashakas_tamil_output.txt \
+  --title "நாராயணீயம்"
+```
+
+### 3) Mix text + PDF inputs
 
 ```bash
 python narayaneeyam_formatter.py \
   --input sample_narayaneeyam_d1_input.txt \
-  --output dasakam1_tamil_output.txt \
-  --title "நாராயணீயம் தசகம் 1" \
-  --model "gpt-4.1-mini" \
+  --input-pdf narayaneeyamAllDashakas.pdf \
+  --output combined_tamil_output.txt \
+  --model gpt-4.1-mini \
   --chunk-size 2
 ```
 
-### Multiple input files
+## CLI options
 
-```bash
-python narayaneeyam_formatter.py \
-  --input sample_narayaneeyam_d1_input.txt more_slokas.txt \
-  --output combined_output.txt
-```
-
-## Input format
-
-- UTF-8 text files
-- One slokam block per paragraph
-- Separate each slokam block with a blank line
+- `-i, --input` : one or more UTF-8 text files
+- `--input-pdf` : one or more PDF files
+- `-o, --output` : output `.txt` file
+- `-t, --title` : optional heading/title at top
+- `-m, --model` : OpenAI model (default: `gpt-4.1-mini`)
+- `-c, --chunk-size` : number of slokas processed per loop (default: `3`)
+- `--log-level` : `DEBUG|INFO|WARNING|ERROR`
 
 ## Notes
 
-- If model output is malformed, the script uses JSON extraction fallbacks.
-- If an individual sloka fails, the script inserts a Tamil error placeholder and continues.
-- You can later add PDF extraction as a pre-processing stage (e.g., extract Sanskrit + commentary text into block format before running this formatter).
+- JSON parsing is intentionally defensive (direct JSON, fenced JSON, object slice fallback).
+- If one sloka fails conversion, the script inserts Tamil error placeholders and continues.
+- PDF parsing quality depends on source PDF text layer quality; OCR PDFs may need pre-cleaning.
